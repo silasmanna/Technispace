@@ -2,12 +2,11 @@ import { Link } from 'react-router-dom';
 import { Building2, ShieldCheck, Banknote, MessageSquare, ArrowRight, CheckCircle } from 'lucide-react';
 
 const BENEFITS = [
-  'List properties for free — no upfront fees',
+  'List properties easily with flexible listing plans',
   'KYC verification builds tenant trust',
-  'Secure escrow keeps payments organized',
-  'Direct tenant communication, no middlemen',
+  'Direct tenant communication, no middleman agents',
   'Detailed analytics on views and inquiries',
-  '5% platform fee deducted from landlord payout only',
+  'Collect 100% of your rent directly from tenants',
 ];
 
 const HOW = [
@@ -18,18 +17,18 @@ const HOW = [
   },
   {
     icon: <Building2 size={28} />,
-    title: '2. List Your Property',
-    desc: 'Add photos, pricing, amenities, and availability. Your property goes live instantly after approval.',
+    title: '2. Choose Plan & List Property',
+    desc: 'Select a listing plan from ₦10,000/month. Add photos, pricing in Naira, amenities, and utilities.',
   },
   {
     icon: <MessageSquare size={28} />,
-    title: '3. Receive Tenant Inquiries',
-    desc: 'Tenants browse and message you directly. No agent in between — just clear communication.',
+    title: '3. Receive Direct Inquiries',
+    desc: 'Tenants browse and message you directly. No agent in between — just clear, fast communication.',
   },
   {
     icon: <Banknote size={28} />,
-    title: '4. Collect via Secure Escrow',
-    desc: 'Rent is held in escrow and released to you after move-in confirmation. 5% fee auto-deducted.',
+    title: '4. Direct Payment & Move-In',
+    desc: 'Collect rent directly from your tenants on your own terms. Keep 100% of your rental income.',
   },
 ];
 
@@ -56,8 +55,8 @@ export default function LandlordsPage() {
               <span className="text-gradient">Earn More. Stress Less.</span>
             </h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 36 }}>
-              Technispace connects KYC-verified landlords directly with quality tenants.
-              No agents, no commission splits — just a transparent 5% platform fee deducted from your payout.
+              Technispace connects KYC-verified landlords directly with quality tenants across Nigeria.
+              No middlemen, no agent hassle — straightforward listing subscriptions and 100% direct rent collection.
             </p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <Link to="/register?role=landlord" className="btn btn-primary btn-lg" id="landlord-register-btn">
@@ -81,7 +80,7 @@ export default function LandlordsPage() {
               <span className="badge badge-primary" style={{ marginBottom: 16 }}>Why Technispace</span>
               <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: 20 }}>Everything You Need to Rent with Confidence</h2>
               <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 28 }}>
-                We built the tools landlords actually need — from identity verification to secure payments — so you can focus on your properties, not the paperwork.
+                We built the tools landlords actually need — from identity verification to direct inquiries and flexible listing plans — so you can focus on your properties, not agent hassles.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {BENEFITS.map((b, i) => (
@@ -93,7 +92,7 @@ export default function LandlordsPage() {
               </div>
             </div>
 
-            {/* Fee Breakdown Card */}
+            {/* Plan Breakdown Card */}
             <div>
               <div style={{
                 background: 'var(--card-bg)',
@@ -102,21 +101,22 @@ export default function LandlordsPage() {
                 padding: '36px',
                 boxShadow: 'var(--shadow-lg)',
               }}>
-                <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: 24 }}>💰 Simple, Transparent Fees</h3>
+                <h3 style={{ fontWeight: 800, fontSize: '1.2rem', marginBottom: 24 }}>✨ Simple Plans & Direct Rentals</h3>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {[
                     { label: 'Tenant Registration', value: 'Free', good: true },
-                    { label: 'Landlord Registration', value: 'Free', good: true },
-                    { label: 'Property Listing Fee', value: 'Free', good: true },
-                    { label: 'Agent Commission', value: 'None', good: true },
-                    { label: 'Platform Fee (landlord only)', value: '5% of rent', good: false },
-                    { label: 'Escrow Service', value: 'Included', good: true },
+                    { label: 'Landlord Registration & KYC', value: 'Free', good: true },
+                    { label: 'Single Listing (30 days)', value: '₦10,000', good: true },
+                    { label: '10 Properties Plan (30 days)', value: '₦50,000', good: true },
+                    { label: 'Unlimited Properties (30 days)', value: '₦100,000', good: true },
+                    { label: 'Agent Middlemen', value: 'None', good: true },
+                    { label: 'Rent Collected by Landlord', value: '100% Direct', good: true },
                   ].map(({ label, value, good }, i) => (
                     <div key={i} style={{
                       display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                       padding: '14px 0',
-                      borderBottom: i < 5 ? '1px solid var(--border-color)' : 'none',
+                      borderBottom: i < 6 ? '1px solid var(--border-color)' : 'none',
                     }}>
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{label}</span>
                       <span style={{
@@ -128,11 +128,6 @@ export default function LandlordsPage() {
                       </span>
                     </div>
                   ))}
-                </div>
-
-                <div style={{ marginTop: 24, padding: '16px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                  Example: You list at $3,000/mo → Technispace deducts $150 → You receive $2,850.
-                  Tenants always pay exactly the listed rent.
                 </div>
               </div>
             </div>

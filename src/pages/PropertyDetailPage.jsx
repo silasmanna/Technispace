@@ -3,11 +3,13 @@ import { useState } from 'react';
 import {
   MapPin, Bed, Bath, Square, Star, ShieldCheck,
   Calendar, MessageSquare, ArrowLeft, Heart,
-  Wifi, Car, Dumbbell, Waves, Lock,
+  Wifi, Car, Dumbbell, Waves, Lock, Phone, Mail, UserCheck, Edit3,
 } from 'lucide-react';
 import { useProperty } from '../context/PropertyContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { useSubscription } from '../context/SubscriptionContext';
+import { BOOST_TIERS, formatNaira } from '../lib/pricing';
 
 const AMENITY_ICONS = {
   'WiFi': <Wifi size={15} />,
@@ -19,15 +21,14 @@ const AMENITY_ICONS = {
 export default function PropertyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { properties, sendInquiry, initiateEscrow } = useProperty();
+  const { properties, sendInquiry } = useProperty();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { getBoost } = useSubscription();
 
   const [activeImg, setActiveImg] = useState(0);
   const [inquiryMsg, setInquiryMsg] = useState('');
   const [showInquiryForm, setShowInquiryForm] = useState(false);
-  const [showEscrow, setShowEscrow] = useState(false);
-  const [escrowConfirmed, setEscrowConfirmed] = useState(false);
 
   const property = properties.find(p => p.id === id);
 
@@ -42,11 +43,17 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const fee = Math.round(property.price * 0.05);
-  const landlordGets = property.price - fee;
+  const boost = getBoost(property.id);
+  const boostTier = boost ? BOOST_TIERS[boost.tier] : null;
+
+  const isOwner = Boolean(user && property && user.id === property.landlordId);
 
   const handleInquiry = (e) => {
     e.preventDefault();
+    if (isOwner) {
+      navigate(`/dashboard/properties/new?edit=${property.id}`);
+      return;
+    }
     if (!user) {
       toast.error('Sign in required', 'Please sign in to send an inquiry.');
       navigate('/login');
@@ -60,25 +67,6 @@ export default function PropertyDetailPage() {
     toast.success('Inquiry Sent!', 'The landlord will respond shortly.');
     setInquiryMsg('');
     setShowInquiryForm(false);
-  };
-
-  const handleEscrow = () => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    if (user.role !== 'tenant') {
-      toast.error('Tenants only', 'Only tenants can initiate payments.');
-      return;
-    }
-    initiateEscrow(
-      property.id, user.id, user.name,
-      property.landlordId, property.landlordName,
-      property.price, property.deposit,
-    );
-    setEscrowConfirmed(true);
-    setShowEscrow(false);
-    toast.success('Payment Secured!', 'Funds are now held in escrow. The landlord will be notified.');
   };
 
   return (
@@ -158,9 +146,21 @@ export default function PropertyDetailPage() {
                 <span className="detail-meta-label">Bathrooms</span>
                 <span className="detail-meta-value">{property.bathrooms}</span>
               </div>
+              {property.toilets && (
+                <div className="detail-meta-item">
+                  <span className="detail-meta-label">Toilets</span>
+                  <span className="detail-meta-value">{property.toilets}</span>
+                </div>
+              )}
               <div className="detail-meta-item">
-                <span className="detail-meta-label">Area</span>
-                <span className="detail-meta-value">{property.sqft.toLocaleString()} sqft</span>
+                <span className="detail-meta-label">Size</span>
+                <span className="detail-meta-value">
+                  {property.sizeValue
+                    ? `${Number(property.sizeValue).toLocaleString()} ${property.sizeUnit || 'sqm'}`
+                    : property.sqft
+                    ? `${property.sqft.toLocaleString()} sqft`
+                    : '—'}
+                </span>
               </div>
               <div className="detail-meta-item">
                 <span className="detail-meta-label">Available</span>
@@ -202,137 +202,245 @@ export default function PropertyDetailPage() {
               </>
             )}
 
-            {/* Landlord Profile */}
+            {/* Utilities & Essentials */}
+            {(property.runningWater || property.parking || property.landlordOnPremises) && (
+              <>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 14 }}>Utilities & Essentials</h2>
+                <div style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: 12, marginBottom: 32,
+                }}>
+                  {/* Water */}
+                  {property.runningWater && (
+                    <UtilityCard
+                      emoji="🚿"
+                      title="Running Water"
+                      status={property.runningWater === 'yes'}
+                      lines={[
+                        property.runningWater === 'yes' ? 'Available' : 'Not available',
+                        property.waterLocation && `Location: ${property.waterLocation}`,
+                        property.waterSource && `Source: ${property.waterSource}`,
+                        property.hotWater && `Hot water: ${property.hotWater}`,
+                      ].filter(Boolean)}
+                    />
+                  )}
+                  {/* Parking */}
+                  {property.parking && (
+                    <UtilityCard
+                      emoji="🚗"
+                      title="Parking"
+                      status={property.parking === 'yes'}
+                      lines={[
+                        property.parking === 'yes' ? 'Available' : 'No parking',
+                        property.parkingType && `Type: ${property.parkingType}`,
+                        property.parkingSpaces > 0 && `${property.parkingSpaces} space${property.parkingSpaces > 1 ? 's' : ''}`,
+                      ].filter(Boolean)}
+                    />
+                  )}
+                  {/* Landlord */}
+                  {property.landlordOnPremises && (
+                    <UtilityCard
+                      emoji="👤"
+                      title="Landlord Presence"
+                      status={!property.landlordOnPremises.startsWith('no')}
+                      neutral
+                      lines={[
+                        property.landlordOnPremises === 'yes_same_floor' ? 'Lives on same floor' :
+                        property.landlordOnPremises === 'yes_diff_floor' ? 'Lives in same building' :
+                        property.landlordOnPremises === 'yes_compound' ? 'Lives in same compound' :
+                        'Does not live on-site',
+                      ]}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
             <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 16 }}>Meet the Landlord</h2>
             <div style={{
-              display: 'flex', alignItems: 'center', gap: 16,
-              padding: 20, borderRadius: 'var(--radius-lg)',
+              padding: 24, borderRadius: 'var(--radius-lg)',
               background: 'var(--bg-elevated)', border: '1px solid var(--border-color)',
               marginBottom: 32,
             }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: '50%',
-                background: 'var(--brand-gradient)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: '1rem', fontWeight: 700, color: 'white',
-              }}>
-                {property.landlordAvatar}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>{property.landlordName}</div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {property.landlordVerified && (
-                    <span className="badge badge-verified">
-                      <ShieldCheck size={11} /> KYC Verified
-                    </span>
-                  )}
-                  <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Direct Landlord</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  background: 'var(--brand-gradient)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1rem', fontWeight: 700, color: 'white', flexShrink: 0,
+                }}>
+                  {property.landlordAvatar}
                 </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: 4 }}>
+                    {user ? property.landlordName : `${property.landlordName?.split(' ')[0]} (Verified Landlord)`}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {property.landlordVerified && (
+                      <span className="badge badge-verified">
+                        <ShieldCheck size={11} /> KYC Verified
+                      </span>
+                    )}
+                    <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>Direct Landlord</span>
+                  </div>
+                </div>
+
+                {isOwner ? (
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => navigate(`/dashboard/properties/new?edit=${property.id}`)}
+                    id="edit-listing-btn"
+                  >
+                    <Edit3 size={15} />
+                    Edit Listing
+                  </button>
+                ) : user ? (
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => setShowInquiryForm(true)}
+                    id="contact-landlord-btn"
+                  >
+                    <MessageSquare size={15} />
+                    Message Landlord
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => navigate('/login')}
+                    id="contact-login-btn"
+                  >
+                    <Lock size={14} />
+                    Log in to Message
+                  </button>
+                )}
               </div>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setShowInquiryForm(true)}
-                id="contact-landlord-btn"
-              >
-                <MessageSquare size={15} />
-                Message
-              </button>
+
+              {/* Landlord Contact Details Section: Revealed only to logged-in users */}
+              {user ? (
+                <div style={{
+                  borderTop: '1px solid var(--border-color)',
+                  paddingTop: 16,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: 12,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
+                    <Phone size={16} color="var(--accent-teal)" />
+                    <div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>DIRECT PHONE</div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{property.landlordPhone || '+234 803 123 4567'}</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)' }}>
+                    <Mail size={16} color="var(--brand-primary)" />
+                    <div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>DIRECT EMAIL</div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700 }}>{property.landlordEmail || 'landlord@technipal.com.ng'}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  borderTop: '1px solid var(--border-color)',
+                  paddingTop: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                  background: 'rgba(108, 71, 255, 0.05)',
+                  padding: '14px 18px',
+                  borderRadius: 'var(--radius-md)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <Lock size={18} color="var(--brand-primary)" />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem' }}>Landlord Contact Info Protected</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        Sign in or register free to view phone number, email, and message the landlord directly.
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login')}>Sign In</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate('/register')}>Register Free</button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Escrow Explainer */}
-            <div className="escrow-card">
-              <div className="escrow-header">
-                <span className="escrow-title">🔒 Secure Escrow Payment</span>
-                <Lock size={18} color="var(--escrow-text)" />
-              </div>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.65 }}>
-                Your rent payment is held securely in our escrow system. The landlord receives the funds only after confirmation,
-                with our 5% platform fee already deducted from the landlord — not from you.
-              </p>
-              <div className="escrow-breakdown">
-                <div className="escrow-row">
-                  <span className="escrow-row-label">Monthly Rent</span>
-                  <span className="escrow-row-value">${property.price.toLocaleString()}</span>
-                </div>
-                <div className="escrow-row">
-                  <span className="escrow-row-label">You Pay</span>
-                  <span className="escrow-row-value" style={{ color: 'var(--accent-teal)' }}>${property.price.toLocaleString()}</span>
-                </div>
-                <div className="escrow-divider" />
-                <div className="escrow-row deduction">
-                  <span className="escrow-row-label">Platform Fee (5%) — from landlord</span>
-                  <span className="escrow-row-value">−${fee.toLocaleString()}</span>
-                </div>
-                <div className="escrow-row net">
-                  <span className="escrow-row-label">Landlord Receives</span>
-                  <span className="escrow-row-value">${landlordGets.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Booking Sidebar */}
           <div>
             <div className="booking-card">
+              {/* Boost badge */}
+              {boostTier && (
+                <div style={{
+                  marginBottom: 16, padding: '8px 12px',
+                  background: boostTier.gradient, borderRadius: 'var(--radius-md)',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  color: 'white', fontWeight: 700, fontSize: '0.82rem',
+                }}>
+                  {boostTier.emoji} {boostTier.name} Listing — Boosted for {boost.expiresAt}
+                </div>
+              )}
+
               <div className="booking-price">
-                ${property.price.toLocaleString()}<span>/month</span>
+                {formatNaira(property.price)}<span>/month</span>
               </div>
               <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 24 }}>
-                + ${property.deposit.toLocaleString()} refundable deposit
+                + {formatNaira(property.deposit)} refundable deposit
               </div>
 
-              {escrowConfirmed ? (
-                <div style={{
-                  padding: '16px', borderRadius: 'var(--radius-md)',
-                  background: 'var(--success-bg)', color: 'var(--success-text)',
-                  fontWeight: 600, textAlign: 'center', marginBottom: 16,
-                }}>
-                  ✓ Payment Secured in Escrow
-                </div>
+              {isOwner ? (
+                <button
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginBottom: 12 }}
+                  onClick={() => navigate(`/dashboard/properties/new?edit=${property.id}`)}
+                  id="owner-edit-listing-btn"
+                >
+                  <Edit3 size={16} />
+                  Edit Listing
+                </button>
+              ) : user ? (
+                <button
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginBottom: 12 }}
+                  onClick={() => setShowInquiryForm(true)}
+                  id="send-inquiry-btn"
+                >
+                  <MessageSquare size={16} />
+                  Send Inquiry to Landlord
+                </button>
               ) : (
                 <button
                   className="btn btn-primary"
                   style={{ width: '100%', marginBottom: 12 }}
-                  onClick={() => {
-                    if (!user) { navigate('/login'); return; }
-                    setShowEscrow(true);
-                  }}
-                  id="secure-payment-btn"
+                  onClick={() => navigate('/login')}
+                  id="login-to-inquire-btn"
                 >
-                  🔒 Secure with Escrow
+                  <Lock size={16} />
+                  Log in to Message Landlord
                 </button>
               )}
 
-              <button
-                className="btn btn-ghost"
-                style={{ width: '100%', marginBottom: 20 }}
-                onClick={() => {
-                  if (!user) { navigate('/login'); return; }
-                  setShowInquiryForm(true);
-                }}
-                id="send-inquiry-btn"
-              >
-                <MessageSquare size={16} />
-                Send Inquiry
-              </button>
-
               <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 8 }}>
-                  <span>Available From</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{property.available}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 8 }}>
-                  <span>Listing ID</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'monospace' }}>{property.id}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  <span>Tenant Fee</span>
-                  <span style={{ fontWeight: 700, color: 'var(--accent-teal)' }}>$0 — Free!</span>
-                </div>
+                {[
+                  { label: 'Available From', value: property.available },
+                  { label: 'Property Size', value: property.sizeValue ? `${property.sizeValue} ${property.sizeUnit || 'sqm'}` : property.sqft ? `${property.sqft} sqft` : '—' },
+                  { label: 'Listing ID', value: property.id, mono: true },
+                  { label: 'Tenant Registration', value: 'Free 🎉', accent: true },
+                ].map(({ label, value, mono, accent }) => (
+                  <div key={label} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 8 }}>
+                    <span>{label}</span>
+                    <span style={{ fontWeight: 600, color: accent ? 'var(--accent-teal)' : 'var(--text-primary)', fontFamily: mono ? 'monospace' : 'inherit', fontSize: mono ? '0.75rem' : 'inherit' }}>{value}</span>
+                  </div>
+                ))}
               </div>
 
               <div style={{ marginTop: 20, padding: '12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                🛡️ This landlord is KYC-verified. Your payment is protected by Technispace Escrow.
+                🛡️ KYC-verified landlord. Negotiate terms, agree on payment, and move in. Tenant browsing is always free.
               </div>
             </div>
           </div>
@@ -374,53 +482,46 @@ export default function PropertyDetailPage() {
         </div>
       )}
 
-      {/* Escrow Confirmation Modal */}
-      {showEscrow && (
-        <div className="modal-overlay" onClick={() => setShowEscrow(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">🔒 Confirm Escrow Payment</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setShowEscrow(false)}>✕</button>
-            </div>
 
-            <div className="escrow-card" style={{ marginBottom: 20 }}>
-              <div className="escrow-breakdown">
-                <div className="escrow-row">
-                  <span className="escrow-row-label">Monthly Rent</span>
-                  <span className="escrow-row-value">${property.price.toLocaleString()}</span>
-                </div>
-                <div className="escrow-row">
-                  <span className="escrow-row-label">Deposit</span>
-                  <span className="escrow-row-value">${property.deposit.toLocaleString()}</span>
-                </div>
-                <div className="escrow-divider" />
-                <div className="escrow-row">
-                  <span className="escrow-row-label" style={{ fontWeight: 700 }}>Total Charged to You</span>
-                  <span className="escrow-row-value" style={{ color: 'var(--accent-teal)', fontSize: '1.1rem' }}>
-                    ${(property.price + property.deposit).toLocaleString()}
-                  </span>
-                </div>
-                <div className="escrow-divider" />
-                <div className="escrow-row deduction">
-                  <span className="escrow-row-label">Platform fee (from landlord)</span>
-                  <span className="escrow-row-value">−${fee.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
+    </div>
+  );
+}
 
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.65 }}>
-              By confirming, your payment will be held securely in Technispace Escrow. Funds are released to the landlord within 5 business days after move-in confirmation.
-            </p>
+function UtilityCard({ emoji, title, status, neutral, lines }) {
+  const color = neutral
+    ? 'var(--text-muted)'
+    : status
+    ? 'var(--accent-teal)'
+    : 'var(--accent-rose)';
 
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button className="btn btn-ghost" onClick={() => setShowEscrow(false)} style={{ flex: 1 }}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleEscrow} style={{ flex: 2 }} id="confirm-escrow-btn">
-                🔒 Confirm & Pay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  return (
+    <div style={{
+      padding: '16px 18px',
+      background: 'var(--bg-elevated)',
+      border: '1px solid var(--border-color)',
+      borderRadius: 'var(--radius-md)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <span style={{ fontSize: '1.1rem' }}>{emoji}</span>
+        <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{title}</span>
+        <span style={{
+          marginLeft: 'auto',
+          width: 8, height: 8, borderRadius: '50%',
+          background: color, flexShrink: 0,
+        }} />
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {lines.map((line, i) => (
+          <span key={i} style={{
+            fontSize: '0.8rem',
+            color: i === 0 ? color : 'var(--text-secondary)',
+            fontWeight: i === 0 ? 600 : 400,
+            textTransform: 'capitalize',
+          }}>
+            {i > 0 ? '· ' : ''}{line}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

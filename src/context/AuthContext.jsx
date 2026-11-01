@@ -2,30 +2,31 @@ import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
 
-// Mock initial users
+// Mock initial users (demo credentials)
 const INITIAL_USERS = [
   {
     id: 'landlord-1',
-    name: 'Marcus Johnson',
-    email: 'marcus@demo.com',
+    name: 'Emeka Johnson',
+    email: 'emeka@demo.com',
     password: 'demo123',
     role: 'landlord',
-    avatar: 'MJ',
-    kycStatus: 'verified', // 'pending' | 'verified' | 'rejected' | 'not_started'
+    avatar: 'EJ',
+    kycStatus: 'verified',
     kycSubmittedAt: '2026-09-10',
     joinedAt: '2026-08-01',
-    phone: '+1 (555) 012-3456',
-    bankAccount: '**** **** **** 4821',
+    phone: '+234 803 012 3456',
+    bankName: 'Guaranty Trust Bank',
+    bankAccount: '**** **** 4821',
   },
   {
     id: 'tenant-1',
-    name: 'Sofia Chen',
-    email: 'sofia@demo.com',
+    name: 'Tunde Adeyemi',
+    email: 'tunde@demo.com',
     password: 'demo123',
     role: 'tenant',
-    avatar: 'SC',
+    avatar: 'TA',
     joinedAt: '2026-09-15',
-    phone: '+1 (555) 987-6543',
+    phone: '+234 708 987 6543',
     savedProperties: ['prop-1', 'prop-3'],
   },
 ];

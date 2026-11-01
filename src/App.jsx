@@ -3,9 +3,11 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { PropertyProvider } from './context/PropertyContext';
 import { ToastProvider } from './context/ToastContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 
 import HomePage from './pages/HomePage';
 import ListingsPage from './pages/ListingsPage';
@@ -16,21 +18,20 @@ import KycPage from './pages/KycPage';
 import DashboardPage from './pages/DashboardPage';
 import ListPropertyPage from './pages/ListPropertyPage';
 import LandlordsPage from './pages/LandlordsPage';
+import PricingPage from './pages/PricingPage';
+import CheckoutPage from './pages/CheckoutPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import ReviewsPage from './pages/ReviewsPage';
+import DisputesPage from './pages/DisputesPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import AdvisoryPage from './pages/AdvisoryPage';
+import FaqPage from './pages/FaqPage';
+import CareersPage from './pages/CareersPage';
 
-// Minimal placeholder page for routes not yet built
-function PlaceholderPage({ title }) {
-  return (
-    <div style={{ paddingTop: 120, textAlign: 'center', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div>
-        <div style={{ fontSize: '3rem', marginBottom: 16 }}>🚧</div>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: 8 }}>{title}</h1>
-        <p style={{ color: 'var(--text-secondary)' }}>This page is coming soon.</p>
-      </div>
-    </div>
-  );
-}
-
-// Pages that should show the full footer layout
 function WithFooter({ children }) {
   return (
     <>
@@ -45,45 +46,48 @@ export default function App() {
     <ThemeProvider>
       <AuthProvider>
         <PropertyProvider>
-          <ToastProvider>
-            <Navbar />
-            <Routes>
-              {/* Public */}
-              <Route path="/" element={<WithFooter><HomePage /></WithFooter>} />
-              <Route path="/listings" element={<WithFooter><ListingsPage /></WithFooter>} />
-              <Route path="/listings/:id" element={<WithFooter><PropertyDetailPage /></WithFooter>} />
-              <Route path="/landlords" element={<WithFooter><LandlordsPage /></WithFooter>} />
-              <Route path="/how-it-works" element={<WithFooter><PlaceholderPage title="How It Works" /></WithFooter>} />
+          <SubscriptionProvider>
+            <ToastProvider>
+              <ScrollToTop />
+              <Navbar />
+              <Routes>
+                {/* Public */}
+                <Route path="/" element={<WithFooter><HomePage /></WithFooter>} />
+                <Route path="/listings" element={<WithFooter><ListingsPage /></WithFooter>} />
+                <Route path="/listings/:id" element={<WithFooter><PropertyDetailPage /></WithFooter>} />
+                <Route path="/landlords" element={<WithFooter><LandlordsPage /></WithFooter>} />
+                <Route path="/pricing" element={<WithFooter><PricingPage /></WithFooter>} />
+                <Route path="/how-it-works" element={<WithFooter><HowItWorksPage /></WithFooter>} />
 
-              {/* Auth */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<PlaceholderPage title="Reset Password" />} />
+                {/* Auth */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-              {/* Landlord */}
-              <Route path="/kyc" element={<KycPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/dashboard/properties" element={<DashboardPage />} />
-              <Route path="/dashboard/properties/new" element={<ListPropertyPage />} />
-              <Route path="/dashboard/saved" element={<DashboardPage />} />
-              <Route path="/dashboard/settings" element={<DashboardPage />} />
+                {/* Landlord flows */}
+                <Route path="/kyc" element={<KycPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard/properties" element={<DashboardPage />} />
+                <Route path="/dashboard/properties/new" element={<ListPropertyPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
 
-              {/* Misc */}
-              <Route path="/pricing" element={<WithFooter><PlaceholderPage title="Pricing" /></WithFooter>} />
-              <Route path="/about" element={<WithFooter><PlaceholderPage title="About Us" /></WithFooter>} />
-              <Route path="/blog" element={<WithFooter><PlaceholderPage title="Blog" /></WithFooter>} />
-              <Route path="/careers" element={<WithFooter><PlaceholderPage title="Careers" /></WithFooter>} />
-              <Route path="/contact" element={<WithFooter><PlaceholderPage title="Contact" /></WithFooter>} />
-              <Route path="/privacy" element={<WithFooter><PlaceholderPage title="Privacy Policy" /></WithFooter>} />
-              <Route path="/terms" element={<WithFooter><PlaceholderPage title="Terms of Service" /></WithFooter>} />
-              <Route path="/escrow" element={<WithFooter><PlaceholderPage title="Escrow System" /></WithFooter>} />
-              <Route path="/reviews" element={<WithFooter><PlaceholderPage title="Verified Reviews" /></WithFooter>} />
-              <Route path="/disputes" element={<WithFooter><PlaceholderPage title="Dispute Resolution" /></WithFooter>} />
+                {/* Info & Legal */}
+                <Route path="/about" element={<WithFooter><AboutPage /></WithFooter>} />
+                <Route path="/advisory" element={<WithFooter><AdvisoryPage /></WithFooter>} />
+                <Route path="/faq" element={<WithFooter><FaqPage /></WithFooter>} />
+                <Route path="/blog" element={<Navigate to="/advisory" replace />} />
+                <Route path="/careers" element={<WithFooter><CareersPage /></WithFooter>} />
+                <Route path="/contact" element={<WithFooter><ContactPage /></WithFooter>} />
+                <Route path="/privacy" element={<WithFooter><PrivacyPage /></WithFooter>} />
+                <Route path="/terms" element={<WithFooter><TermsPage /></WithFooter>} />
+                <Route path="/reviews" element={<WithFooter><ReviewsPage /></WithFooter>} />
+                <Route path="/disputes" element={<WithFooter><DisputesPage /></WithFooter>} />
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </ToastProvider>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </ToastProvider>
+          </SubscriptionProvider>
         </PropertyProvider>
       </AuthProvider>
     </ThemeProvider>

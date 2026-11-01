@@ -3,15 +3,15 @@ import { Search, SlidersHorizontal, MapPin, X } from 'lucide-react';
 import { useProperty } from '../context/PropertyContext';
 import PropertyCard from '../components/PropertyCard';
 
-const TYPES = ['All', 'Studio', '1BR', '2BR', '3BR', 'Loft', 'Penthouse'];
+const TYPES = ['All', 'Studio', '1BR', '2BR', '3BR', '4BR+', 'Duplex', 'Penthouse'];
 const PRICE_RANGES = [
   { label: 'Any Price', max: Infinity },
-  { label: 'Under $2,000', max: 2000 },
-  { label: '$2,000–$4,000', min: 2000, max: 4000 },
-  { label: '$4,000–$7,000', min: 4000, max: 7000 },
-  { label: '$7,000+', min: 7000, max: Infinity },
+  { label: 'Under ₦500,000', max: 500000 },
+  { label: '₦500k – ₦1.5M', min: 500000, max: 1500000 },
+  { label: '₦1.5M – ₦3M', min: 1500000, max: 3000000 },
+  { label: '₦3M+', min: 3000000, max: Infinity },
 ];
-const CITIES = ['All Cities', 'San Francisco', 'New York', 'Brooklyn', 'Chicago', 'Miami', 'Los Angeles'];
+const CITIES = ['All Cities', 'Lekki', 'Ikeja', 'Victoria Island', 'Yaba', 'Ikoyi', 'Surulere', 'Wuse 2 (Abuja)'];
 
 export default function ListingsPage() {
   const { properties } = useProperty();
@@ -44,7 +44,11 @@ export default function ListingsPage() {
       p.price >= (priceRange.min ?? 0) &&
       p.price <= (priceRange.max ?? Infinity);
 
-    const matchCity = city === 'All Cities' || p.city === city || p.state + ', ' + p.country === city;
+    const matchCity =
+      city === 'All Cities' ||
+      p.city === city ||
+      (city === 'Wuse 2 (Abuja)' && (p.city === 'Wuse 2' || p.state === 'Abuja')) ||
+      p.state + ', ' + p.country === city;
 
     return matchSearch && matchType && matchPrice && matchCity;
   }).sort((a, b) => {
@@ -60,9 +64,14 @@ export default function ListingsPage() {
       {/* Search Header */}
       <div style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-color)', padding: '24px 0' }}>
         <div className="container">
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: 20 }}>
-            Find Your Next Home
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0 }}>
+              Find Your Next Home
+            </h1>
+            <span style={{ fontSize: '0.82rem', color: 'var(--brand-primary)', fontWeight: 600, background: 'rgba(108, 71, 255, 0.08)', padding: '4px 10px', borderRadius: 'var(--radius-full)' }}>
+              📍 Active in mostly Lagos for now · Coming to other cities soon
+            </span>
+          </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
             <div className="search-bar" style={{ maxWidth: 560 }}>
               <Search size={17} color="var(--text-muted)" />

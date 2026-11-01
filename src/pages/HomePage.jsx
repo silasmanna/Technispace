@@ -14,13 +14,13 @@ const FEATURES = [
   },
   {
     icon: <Banknote size={26} />,
-    title: 'Secure Escrow Payments',
-    desc: 'Your rent is held safely in escrow. A 5% platform fee is deducted from the landlord\'s payout — tenants never pay extra.',
+    title: 'Zero Middlemen',
+    desc: 'Pay rent directly to your verified landlord. No middlemen, no agents, and no third-party cuts.',
   },
   {
     icon: <Users size={26} />,
     title: 'Zero Agent Fees',
-    desc: 'Connect directly with property owners. No middlemen, no agency commissions. Just straightforward renting.',
+    desc: 'Connect directly with property owners. No agency fees or extra middleman charges — just straightforward renting.',
   },
   {
     icon: <Zap size={26} />,
@@ -35,15 +35,15 @@ const FEATURES = [
   {
     icon: <CheckCircle size={26} />,
     title: 'Transparent Pricing',
-    desc: 'See exactly what you pay. No hidden fees, no surprise charges. Monthly rent and deposit clearly displayed up front.',
+    desc: 'See exactly what you pay in Naira (₦). No surprise charges. Monthly rent and deposit clearly displayed up front.',
   },
 ];
 
 const HOW_IT_WORKS = [
   { step: '01', title: 'Landlord Signs Up & Completes KYC', desc: 'Landlords submit identity docs. We verify in 24–48 hrs.' },
-  { step: '02', title: 'Property Gets Listed', desc: 'Verified landlords list with photos, price, and details.' },
+  { step: '02', title: 'Property Gets Listed', desc: 'Verified landlords select a plan and list with photos, price, and utilities.' },
   { step: '03', title: 'Tenant Browses & Inquires', desc: 'Tenants register free and message landlords directly.' },
-  { step: '04', title: 'Secure Escrow Payment', desc: 'Rent goes into escrow. 5% fee deducted, landlord gets the rest.' },
+  { step: '04', title: 'Direct Agreement & Move-In', desc: 'Connect, inspect, and finalize agreements directly with your landlord.' },
 ];
 
 export default function HomePage() {
@@ -66,7 +66,7 @@ export default function HomePage() {
             <div>
               <div className="hero-badge">
                 <span className="hero-badge-dot" />
-                100% Agent-Free Rentals
+                100% Agent-Free Rentals · All Fees Capped at 5%
               </div>
 
               <h1 className="hero-title">
@@ -75,8 +75,7 @@ export default function HomePage() {
               </h1>
 
               <p className="hero-subtitle">
-                Skip the agents. On Technispace, every landlord is KYC-verified and every
-                payment is secured by escrow. Transparent, safe, and commission-free.
+                Skip the agents. On Technispace, every landlord is KYC-verified and all fees are capped at 5%. Active mostly in Lagos for now, coming to other cities soon. Connect directly, inspect in person, and rent with total confidence.
               </p>
 
               <div className="hero-cta">
@@ -99,12 +98,12 @@ export default function HomePage() {
                   <div className="hero-stat-label">Satisfaction Rate</div>
                 </div>
                 <div>
-                  <div className="hero-stat-value">$0</div>
-                  <div className="hero-stat-label">Tenant Fees</div>
+                  <div className="hero-stat-value">≤ 5%</div>
+                  <div className="hero-stat-label">All Fees Capped</div>
                 </div>
                 <div>
-                  <div className="hero-stat-value">5%</div>
-                  <div className="hero-stat-label">Platform Fee</div>
+                  <div className="hero-stat-value">100%</div>
+                  <div className="hero-stat-label">Direct Rentals</div>
                 </div>
               </div>
             </div>
@@ -114,51 +113,29 @@ export default function HomePage() {
                 <div className="fc-icon purple">🏠</div>
                 <div>
                   <div className="fc-label">New Listing</div>
-                  <div className="fc-value">Modern Studio – SF</div>
+                  <div className="fc-value">Modern 2BR – Lekki Phase 1</div>
                 </div>
                 <div className="fc-badge badge badge-verified">Verified</div>
               </div>
 
               <div className="floating-card">
-                <div className="fc-icon teal">🔒</div>
+                <div className="fc-icon teal">🛡️</div>
                 <div>
-                  <div className="fc-label">Escrow Secured</div>
-                  <div className="fc-value">$3,900 held safely</div>
+                  <div className="fc-label">Fee Guarantee</div>
+                  <div className="fc-value">All fees capped at 5%</div>
                 </div>
-                <div className="fc-badge badge badge-primary">Active</div>
+                <div className="fc-badge badge badge-primary">Guaranteed</div>
               </div>
 
               <div className="floating-card">
                 <div className="fc-icon amber">⭐</div>
                 <div>
-                  <div className="fc-label">Review from Sofia C.</div>
-                  <div className="fc-value">"Great landlord, 5 stars!"</div>
+                  <div className="fc-label">Review from Chioma A.</div>
+                  <div className="fc-value">"Direct landlord, fast & easy!"</div>
                 </div>
                 <div style={{ marginLeft: 'auto', color: 'var(--accent-amber)', fontSize: '0.9rem' }}>★★★★★</div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section className="section" style={{ background: 'var(--bg-subtle)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <span className="badge badge-primary" style={{ marginBottom: 16 }}>Why Technispace</span>
-            <h2 className="display-md">Built for Trust. Designed for You.</h2>
-            <p style={{ color: 'var(--text-secondary)', marginTop: 12, maxWidth: 520, margin: '12px auto 0' }}>
-              We built the safest way to rent — direct, verified, and secured.
-            </p>
-          </div>
-          <div className="features-grid">
-            {FEATURES.map((f, i) => (
-              <div key={i} className="feature-card">
-                <div className="feature-icon">{f.icon}</div>
-                <h3 className="feature-title">{f.title}</h3>
-                <p className="feature-desc">{f.desc}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -179,6 +156,28 @@ export default function HomePage() {
           <div className="properties-grid">
             {featured.map((p, i) => (
               <PropertyCard key={p.id} property={p} index={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Features (Why Technispace) ── */}
+      <section className="section" style={{ background: 'var(--bg-subtle)' }}>
+        <div className="container">
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <span className="badge badge-primary" style={{ marginBottom: 16 }}>Why Technispace</span>
+            <h2 className="display-md">Built for Trust. Designed for You.</h2>
+            <p style={{ color: 'var(--text-secondary)', marginTop: 12, maxWidth: 520, margin: '12px auto 0' }}>
+              We built the safest way to rent — direct, verified, and secured.
+            </p>
+          </div>
+          <div className="features-grid">
+            {FEATURES.map((f, i) => (
+              <div key={i} className="feature-card">
+                <div className="feature-icon">{f.icon}</div>
+                <h3 className="feature-title">{f.title}</h3>
+                <p className="feature-desc">{f.desc}</p>
+              </div>
             ))}
           </div>
         </div>

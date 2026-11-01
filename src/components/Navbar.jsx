@@ -20,11 +20,30 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const navLinks = [
-    { label: 'Find Homes', path: '/listings' },
-    { label: 'For Landlords', path: '/landlords' },
-    { label: 'How It Works', path: '/how-it-works' },
-  ];
+  // Dynamic navigation links based on user role
+  const isLandlord = user?.role === 'landlord';
+  const isTenant = user?.role === 'tenant';
+
+  const navLinks = isLandlord
+    ? [
+        { label: 'My Dashboard', path: '/dashboard' },
+        { label: 'My Listings', path: '/dashboard' },
+        { label: 'List New Property', path: '/dashboard/properties/new' },
+        { label: 'Plans & Boosts', path: '/pricing' },
+        { label: 'Browse Homes', path: '/listings' },
+      ]
+    : isTenant
+    ? [
+        { label: 'Find Homes', path: '/listings' },
+        { label: 'Saved Homes', path: '/dashboard' },
+        { label: 'How It Works', path: '/how-it-works' },
+      ]
+    : [
+        { label: 'Find Homes', path: '/listings' },
+        { label: 'For Landlords', path: '/landlords' },
+        { label: 'Listing Plans', path: '/pricing' },
+        { label: 'How It Works', path: '/how-it-works' },
+      ];
 
   return (
     <nav className="navbar">

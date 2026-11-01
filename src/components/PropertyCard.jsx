@@ -1,5 +1,8 @@
-import { MapPin, Bed, Bath, Square, Star, ShieldCheck } from 'lucide-react';
+import { MapPin, Bed, Bath, Square, Star, ShieldCheck, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../context/SubscriptionContext';
+import { BOOST_TIERS } from '../lib/pricing';
 
 function gradientFor(index) {
   const gradients = [
@@ -15,6 +18,17 @@ function gradientFor(index) {
 
 export default function PropertyCard({ property, index = 0 }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { getBoost } = useSubscription();
+  const boost = getBoost(property.id);
+  const tier = boost ? BOOST_TIERS[boost.tier] : null;
+  const isOwner = Boolean(user && property && user.id === property.landlordId);
+
+  const sizeLabel = () => {
+    if (property.sizeValue) return `${Number(property.sizeValue).toLocaleString()} ${property.sizeUnit || 'sqm'}`;
+    if (property.sqft) return `${property.sqft.toLocaleString()} sqft`;
+    return null;
+  };
 
   const bedroomLabel = () => {
     if (property.type === 'studio') return 'Studio';
@@ -27,6 +41,7 @@ export default function PropertyCard({ property, index = 0 }) {
       className="property-card"
       id={`property-card-${property.id}`}
       onClick={() => navigate(`/listings/${property.id}`)}
+      style={tier ? { outline: `2px solid ${tier.color}`, outlineOffset: 2 } : {}}
     >
       <div className="property-img">
         {property.images?.[0] ? (
@@ -44,15 +59,47 @@ export default function PropertyCard({ property, index = 0 }) {
         )}
         <div className="property-img-overlay" />
 
-        {property.landlordVerified && (
+        {/* Boost badge — top left */}
+        {tier && (
+          <div style={{
+            position: 'absolute', top: 10, left: 10,
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '3px 10px', borderRadius: 'var(--radius-full)',
+            background: tier.gradient, color: 'white',
+            fontSize: '0.68rem', fontWeight: 800,
+            boxShadow: `0 2px 10px ${tier.color}66`,
+            letterSpacing: '0.04em',
+          }}>
+            {tier.emoji} {tier.name.toUpperCase()}
+          </div>
+        )}
+
+        {/* Owner listing indicator */}
+        {isOwner && (
+          <div style={{
+            position: 'absolute', top: 10, right: 10,
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '3px 10px', borderRadius: 'var(--radius-full)',
+            background: 'var(--brand-primary)', color: 'white',
+            fontSize: '0.68rem', fontWeight: 800,
+            boxShadow: '0 2px 8px rgba(108, 71, 255, 0.4)',
+            letterSpacing: '0.04em',
+          }}>
+            <Edit3 size={11} /> YOUR LISTING · EDIT
+          </div>
+        )}
+
+        {/* Verified badge — only if no boost and not owner (avoid clutter) */}
+        {!tier && !isOwner && property.landlordVerified && (
           <div className="property-badge-verified">
             <ShieldCheck size={11} />
             Verified
           </div>
         )}
 
+        {/* Price badge */}
         <div className="property-price-badge">
-          ${property.price.toLocaleString()}<span style={{ fontSize: '0.7rem', fontWeight: 400, marginLeft: 2 }}>/mo</span>
+          ₦{property.price.toLocaleString()}<span style={{ fontSize: '0.7rem', fontWeight: 400, marginLeft: 2 }}>/mo</span>
         </div>
       </div>
 
@@ -72,10 +119,12 @@ export default function PropertyCard({ property, index = 0 }) {
             <Bath size={14} />
             {property.bathrooms} Bath
           </div>
-          <div className="property-meta-item">
-            <Square size={14} />
-            {property.sqft.toLocaleString()} sqft
-          </div>
+          {sizeLabel() && (
+            <div className="property-meta-item">
+              <Square size={14} />
+              {sizeLabel()}
+            </div>
+          )}
         </div>
 
         <div className="property-footer">
